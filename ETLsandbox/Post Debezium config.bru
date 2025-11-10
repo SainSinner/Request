@@ -1,0 +1,46 @@
+meta {
+  name: Post Debezium config
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:8083/connectors
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "name": "postgres-backend-debezium-connector",
+      "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "plugin.name": "pgoutput",
+        "database.hostname": "localhost",
+        "database.port": "5432",
+        "database.user": "airflow",
+        "database.password": "airflow",
+        "database.dbname": "backend",
+        "database.server.name": "pg_dev",
+        "table.include.list": "public.*",
+        "heartbeat.interval.ms": "5000",
+        "slot.name": "dbname_debezium",
+        "publication.name": "dbname_publication",
+        "transforms": "AddPrefix",
+        "transforms.AddPrefix.type": "org.apache.kafka.connect.transforms.RegexRouter",
+        "transforms.AddPrefix.regex": "pg_dev\\.public\\.(.*)",
+        "transforms.AddPrefix.replacement": "data.cdc.dbname_$1",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "key.converter.schemas.enable": "false",
+        "value.converter.schemas.enable": "false",
+        "include.schema.changes": "false",
+        "snapshot.mode": "initial"
+      }
+    }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
